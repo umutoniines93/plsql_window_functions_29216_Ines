@@ -1,12 +1,6 @@
--- TechWorld Retail Electronics Store
--- Schema, sample data, JOINs, and Window Functions
-
--- Drop tables if they already exist (order matters due to FKs)
 DROP TABLE IF EXISTS Sales;
 DROP TABLE IF EXISTS Products;
 DROP TABLE IF EXISTS Customers;
-
--- 1) Tables
 CREATE TABLE Customers (
     CustomerID   INT PRIMARY KEY,
     CustomerName VARCHAR(100) NOT NULL,
@@ -31,18 +25,17 @@ CREATE TABLE Sales (
     CONSTRAINT fk_sales_products  FOREIGN KEY (ProductID)  REFERENCES Products(ProductID)
 );
 
--- 2) Sample data
 INSERT INTO Customers (CustomerID, CustomerName, Region) VALUES
-(1, 'Ava Patel', 'North'),
-(2, 'Noah Kim', 'South'),
-(3, 'Liam Chen', 'East'),
-(4, 'Mia Santos', 'West'),
-(5, 'Sophia Nguyen', 'North'),
-(6, 'Ethan Brown', 'South'),
-(7, 'Isabella Rossi', 'East'),
-(8, 'Lucas Silva', 'West'),
-(9, 'Amelia Johnson', 'North'),
-(10, 'Oliver Garcia', 'South');
+(1, 'Aline Mukamana', 'Gasabo'),
+(2, 'Jean Nkurunziza', 'Kicukiro'),
+(3, 'Eric Habimana', 'Rwamagana'),
+(4, 'Diane Uwimana', 'Rubavu'),
+(5, 'Patrick Habyarimana', 'Rusizi'),
+(6, 'Chantal Niyonzima', 'Gasabo'),
+(7, 'Samuel Ndahiro', 'Kicukiro'),
+(8, 'Beata Ingabire', 'Rwamagana'),
+(9, 'Emmanuel Mugisha', 'Rubavu'),
+(10, 'Grace Uwamahoro', 'Rusizi');
 
 INSERT INTO Products (ProductID, ProductName, Category, Price) VALUES
 (101, 'Smartphone X1', 'Mobile', 799.00),
@@ -72,13 +65,7 @@ INSERT INTO Sales (SaleID, SaleDate, CustomerID, ProductID, Quantity, TotalAmoun
 (1013, '2026-02-02', 3, 105, 1, 1499.00),
 (1014, '2026-02-14', 5, 108, 1, 549.00);
 
--- 3) JOINs (Part A)
-
--- ======================================================================
--- A1. INNER JOIN: All completed sales with customer and product details
--- ======================================================================
--- Business Purpose: Retrieve all valid transactions that have both customer and product information
--- Use Case: Generate sales reports showing who bought what, when, and for how much
+-- INNER JOIN
 SELECT
     s.SaleID,
     s.SaleDate,
@@ -92,16 +79,7 @@ INNER JOIN Customers c ON s.CustomerID = c.CustomerID
 INNER JOIN Products p ON s.ProductID = p.ProductID
 ORDER BY s.SaleDate, s.SaleID;
 
--- Business Interpretation: 
--- This query shows all 14 completed transactions in the system. 
--- It confirms that every sale has valid customer and product relationships,
--- essential for accurate revenue reporting and customer analytics.
-
--- ======================================================================
--- A2. LEFT JOIN: Identify customers who have never made a purchase
--- ======================================================================
--- Business Purpose: Find inactive customers for targeted re-engagement campaigns
--- Use Case: Marketing can reach out to customers who registered but never purchased
+-- LEFT JOIN
 SELECT
     c.CustomerID,
     c.CustomerName,
@@ -112,16 +90,7 @@ LEFT JOIN Sales s ON c.CustomerID = s.CustomerID
 WHERE s.SaleID IS NULL
 ORDER BY c.CustomerID;
 
--- Business Interpretation:
--- This query reveals customers without any purchase history (if any exist).
--- These customers are prime candidates for welcome offers or promotional campaigns
--- to convert them from registered users to active buyers.
-
--- ======================================================================
--- A3. RIGHT JOIN: Products with no sales activity
--- ======================================================================
--- Business Purpose: Detect products in inventory that have never been sold
--- Use Case: Identify slow-moving inventory for clearance sales or discontinuation
+-- RIGHT JOIN
 SELECT
     p.ProductID,
     p.ProductName,
@@ -133,16 +102,7 @@ RIGHT JOIN Products p ON s.ProductID = p.ProductID
 WHERE s.SaleID IS NULL
 ORDER BY p.ProductID;
 
--- Business Interpretation:
--- This query identifies products with zero sales activity.
--- These items may need promotional pricing, better marketing, or removal from inventory
--- to free up capital and warehouse space.
-
--- ======================================================================
--- A4. FULL OUTER JOIN: Compare all customers and products including unmatched records
--- ======================================================================
--- Business Purpose: Get a complete view of both customers and products, including those without sales
--- Use Case: Comprehensive audit to see the full scope of registered entities vs. active transactions
+-- FULL OUTER JOIN
 SELECT
     c.CustomerID,
     c.CustomerName,
@@ -156,21 +116,7 @@ FULL OUTER JOIN Sales s ON c.CustomerID = s.CustomerID
 FULL OUTER JOIN Products p ON s.ProductID = p.ProductID
 ORDER BY c.CustomerID, p.ProductID, s.SaleID;
 
--- Business Interpretation:
--- This query provides a comprehensive view showing all customers, products, and sales.
--- It reveals both active and inactive entities, helping management understand
--- the gap between registered resources (customers/products) and actual sales activity.
-
--- ======================================================================
--- A5. SELF JOIN: Compare sales within the same region
--- ======================================================================
--- Business Purpose: Analyze price variations for different products sold in the same region
--- Use Case: Understand regional pricing dynamics and identify cross-selling opportunities
--- ======================================================================
--- A5. SELF JOIN: Compare sales within the same region
--- ======================================================================
--- Business Purpose: Analyze price variations for different products sold in the same region
--- Use Case: Understand regional pricing dynamics and identify cross-selling opportunities
+-- SELF JOIN
 SELECT
     s1.SaleID AS SaleID_1,
     s2.SaleID AS SaleID_2,
@@ -188,22 +134,7 @@ INNER JOIN Products p1 ON s1.ProductID = p1.ProductID
 INNER JOIN Products p2 ON s2.ProductID = p2.ProductID
 ORDER BY c1.Region, s1.SaleID, s2.SaleID;
 
--- Business Interpretation:
--- This self-join compares pairs of sales within the same region.
--- It reveals which products are commonly purchased together in the same region
--- and highlights price differences that could inform bundling strategies.
-
--- ======================================================================
--- PART B: WINDOW FUNCTIONS
--- ======================================================================
-
--- ======================================================================
--- B1. RANKING FUNCTIONS: ROW_NUMBER, RANK, DENSE_RANK, PERCENT_RANK
--- ======================================================================
--- Business Purpose: Rank products by revenue performance in each region
--- Use Case: Identify top performers for inventory prioritization and marketing focus
-
--- Step 1: Calculate total revenue per product per region
+-- RANKING FUNCTIONS
 WITH product_revenue AS (
     SELECT
         c.Region,
@@ -215,7 +146,7 @@ WITH product_revenue AS (
     INNER JOIN Products p ON s.ProductID = p.ProductID
     GROUP BY c.Region, p.ProductID, p.ProductName
 )
--- Step 2: Apply all ranking functions for comprehensive analysis
+-- Step 2: Apply ranking functions
 SELECT
     Region,
     ProductID,
@@ -228,49 +159,23 @@ SELECT
 FROM product_revenue
 ORDER BY Region, Revenue DESC;
 
--- Business Interpretation:
--- ROW_NUMBER provides unique sequential rankings even for ties.
--- RANK creates gaps after ties (e.g., 1, 2, 2, 4).
--- DENSE_RANK has no gaps (e.g., 1, 2, 2, 3).
--- PERCENT_RANK shows relative standing (0 = top performer, 1 = bottom).
--- Use DENSE_RANK for top N products per region to ensure all top performers are included.
-
--- ======================================================================
--- B2. AGGREGATE WINDOW FUNCTIONS: SUM, AVG, MIN, MAX with ROWS/RANGE
--- ======================================================================
--- Business Purpose: Calculate running totals and moving averages for trend analysis
--- Use Case: Track cumulative revenue and 3-sale moving average for sales performance monitoring
-
+-- AGGREGATE WINDOW FUNCTIONS
 SELECT
     SaleDate,
     SaleID,
     TotalAmount,
-    -- Running total (cumulative sum)
+    -- Running total
     SUM(TotalAmount) OVER (ORDER BY SaleDate, SaleID ROWS UNBOUNDED PRECEDING) AS RunningTotal,
-    -- 3-row moving average using ROWS
+    -- 3-row moving average
     AVG(TotalAmount) OVER (ORDER BY SaleDate, SaleID ROWS BETWEEN 2 PRECEDING AND CURRENT ROW) AS MovingAvg_3Sales,
-    -- Minimum and maximum in current and previous 2 sales
+    -- Min and max in 3 sales
     MIN(TotalAmount) OVER (ORDER BY SaleDate, SaleID ROWS BETWEEN 2 PRECEDING AND CURRENT ROW) AS Min_3Sales,
     MAX(TotalAmount) OVER (ORDER BY SaleDate, SaleID ROWS BETWEEN 2 PRECEDING AND CURRENT ROW) AS Max_3Sales,
-    -- Range-based sum (all sales on same date or earlier)
     SUM(TotalAmount) OVER (ORDER BY SaleDate RANGE UNBOUNDED PRECEDING) AS RangeBasedSum
 FROM Sales
 ORDER BY SaleDate, SaleID;
 
--- Business Interpretation:
--- RunningTotal shows cumulative revenue growth over time, reaching the total company revenue.
--- MovingAvg_3Sales smooths out fluctuations to reveal underlying trends.
--- ROWS frame counts exact number of rows (physical boundaries).
--- RANGE frame includes all rows with same ORDER BY value (logical boundaries).
--- Use RANGE when you want all sales on the same date included together.
-
--- ======================================================================
--- B3. NAVIGATION FUNCTIONS: LAG and LEAD
--- ======================================================================
--- Business Purpose: Compare current period performance with previous/next periods
--- Use Case: Calculate month-over-month sales growth and identify trends
-
-WITH monthly_sales AS (
+-- NAVIGATION FUNCTIONSWITH monthly_sales AS (
     SELECT
         DATE_TRUNC('month', SaleDate) AS SaleMonth,
         SUM(TotalAmount) AS MonthTotal
@@ -280,13 +185,13 @@ WITH monthly_sales AS (
 SELECT
     SaleMonth,
     MonthTotal,
-    -- Previous month's total using LAG
+    -- Previous month using LAG
     LAG(MonthTotal, 1) OVER (ORDER BY SaleMonth) AS PrevMonthTotal,
-    -- Next month's total using LEAD
+    -- Next month using LEAD
     LEAD(MonthTotal, 1) OVER (ORDER BY SaleMonth) AS NextMonthTotal,
-    -- Month-over-month growth amount
+    -- Growth amount
     (MonthTotal - LAG(MonthTotal, 1) OVER (ORDER BY SaleMonth)) AS MonthGrowth,
-    -- Month-over-month growth percentage
+    -- Growth percentage
     ROUND(
         ((MonthTotal - LAG(MonthTotal, 1) OVER (ORDER BY SaleMonth)) / 
         NULLIF(LAG(MonthTotal, 1) OVER (ORDER BY SaleMonth), 0) * 100), 2
@@ -294,19 +199,7 @@ SELECT
 FROM monthly_sales
 ORDER BY SaleMonth;
 
--- Business Interpretation:
--- LAG accesses previous row values without self-joins, simplifying trend analysis.
--- Growth calculations reveal which months saw increases or decreases in sales.
--- Negative growth indicates declining sales requiring management attention.
--- This analysis helps forecast future performance and adjust sales strategies accordingly.
-
--- ======================================================================
--- B4. DISTRIBUTION FUNCTIONS: NTILE and CUME_DIST
--- ======================================================================
--- Business Purpose: Segment customers into spending tiers for targeted marketing
--- Use Case: Create Gold/Silver/Bronze/Basic customer segments based on total spending
-
-WITH customer_spend AS (
+-- DISTRIBUTION FUNCTIONSWITH customer_spend AS (
     SELECT
         c.CustomerID,
         c.CustomerName,
@@ -321,11 +214,11 @@ SELECT
     CustomerName,
     Region,
     TotalSpend,
-    -- Divide into 4 equal groups (quartiles)
+    -- Quartiles
     NTILE(4) OVER (ORDER BY TotalSpend DESC) AS SpendQuartile,
-    -- Cumulative distribution (percentage of customers with equal or lower spend)
+    -- Cumulative distribution
     ROUND(CUME_DIST() OVER (ORDER BY TotalSpend DESC), 4) AS CumulativeDistribution,
-    -- Assign tier labels based on quartile
+    -- Tier labels
     CASE 
         WHEN NTILE(4) OVER (ORDER BY TotalSpend DESC) = 1 THEN 'Gold'
         WHEN NTILE(4) OVER (ORDER BY TotalSpend DESC) = 2 THEN 'Silver'
@@ -334,10 +227,3 @@ SELECT
     END AS CustomerTier
 FROM customer_spend
 ORDER BY TotalSpend DESC;
-
--- Business Interpretation:
--- NTILE(4) divides customers into four equal-sized groups for fair segmentation.
--- Quartile 1 (Gold) = top 25% of spenders, ideal for VIP programs and exclusive offers.
--- Quartile 4 (Basic) = bottom 25%, candidates for engagement campaigns to increase spending.
--- CUME_DIST shows what percentage of customers have spent equal or less.
--- This segmentation enables personalized marketing with appropriate messaging per tier.
