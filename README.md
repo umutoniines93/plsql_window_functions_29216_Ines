@@ -8,7 +8,7 @@ TechWorld is an electronic goods retail store with branches in the North, South,
 ### Data Difficulty
 The business suffers from challenges in determining the product and customer who are not performing to expectation and revenue growth trends over time. With such management, marketing is not yet powerful; neither are the activities in stock reflecting true transparency of the customers' spending habits.
 
-### Anticipated Result
+### Result Expected
 Anticipated Results SQL is defined to provide insight into the following: - Top-selling products per territory - Customers targeted with marketing campaigns based on their spending habits - Monthly sales growth trend analysis - Running total revenue - Inventory that is not selling and customers who are not spending
 
 ## Success Criteria
