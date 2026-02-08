@@ -167,6 +167,16 @@ All sources were properly cited. Implementations and analysis represent original
 - Oracle SQL Developer
 - Azure Data Studio (SQL Server)
 
+## Query Execution Screenshots
+
+Visual demonstrations of each query's output are available in the [screenshots](screenshots/) folder:
+
+- **[ranking-functions](screenshots/ranking-functions/)** - ROW_NUMBER(), RANK(), DENSE_RANK(), and PERCENT_RANK() results
+- **[aggregate-functions](screenshots/aggregate-functions/)** - SUM(), AVG(), MIN(), MAX() with window frames
+- **[navigation-functions](screenshots/navigation-functions/)** - LAG() and LEAD() results showing month-over-month comparisons
+- **[distribution-functions](screenshots/distribution-functions/)** - NTILE() customer segmentation and CUME_DIST() results
+- **[join-examples](screenshots/join-examples/)** - INNER, LEFT, RIGHT, and FULL OUTER JOIN visualization
+
 ---
 
 **Project Repository:** [plsql_window_functions_29216_Ines](https://github.com/Umutoniines93/plsql_window_functions_29216_Ines)
